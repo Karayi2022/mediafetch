@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MediaFetch</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Background */
+      --bg-gradient: linear-gradient(180deg,rgba(2, 0, 36, 1) 0%, rgba(9, 9, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
+      
+      /* Colors */
+      --card-bg: #ffffff;
+      --text: #0f172a;       
+      --text-muted: #64748b; 
+      
+      /* New Accent: #4338ca */
+      --primary: #4338ca;
+      --primary-hover: #3730a3;
+      
+      /* Borders/Inputs */
+      --border: #e2e8f0;     
+      --input-bg: #f8fafc;   
+      
+      /* Status */
+      --success: #10b981;
+      --danger: #ef4444;
+      
+      /* Typography */
+      --font-body: 'Poppins', system-ui, sans-serif;
+      --font-heading: 'League Spartan', system-ui, sans-serif;
+    }
+
+    body {
+      background-image: var(--bg-gradient);
+      color: var(--text);
+      font-family: var(--font-body);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+      padding: 20px;
+      background-attachment: fixed;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 6vh;
+    }
+
+    /* Header with Logo */
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .logo {
+      max-width: 320px; 
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Form Elements */
+    .form-group { margin-bottom: 24px; }
+    
+    label { 
+      display: block; 
+      font-family: var(--font-heading);
+      font-size: 14px; 
+      font-weight: 600; 
+      color: var(--text-muted); 
+      margin-bottom: 8px; 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: var(--font-body);
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    input[type="text"]:focus { 
+      outline: none; 
+      border-color: var(--primary); 
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.1); /* Matches #4338ca */
+    }
+
+    /* Segmented Control */
+    .segmented-control {
+      display: flex;
+      background: var(--input-bg);
+      padding: 5px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+    .segmented-control label {
+      flex: 1;
+      margin: 0;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 10px;
+      font-size: 15px;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      font-family: var(--font-heading);
+      font-weight: 600;
+    }
+    .segmented-control input { display: none; }
+    .segmented-control input:checked + label {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 12px; margin-top: 32px; }
+    button {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.5px;
+    }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .btn-primary { 
+      background: var(--primary); 
+      color: white; 
+      box-shadow: 0 4px 10px -2px rgba(67, 56, 202, 0.4);
+    }
+    .btn-primary:hover:not(:disabled) { 
+      background: var(--primary-hover); 
+      box-shadow: 0 6px 12px -2px rgba(67, 56, 202, 0.5);
+    }
+    
+    .btn-secondary { 
+      background: transparent; 
+      border: 1px solid var(--border); 
+      color: var(--text-muted); 
+    }
+    .btn-secondary:hover { 
+      color: var(--text); 
+      border-color: var(--text-muted); 
+      background: var(--input-bg);
+    }
+
+    /* Terminal/Log */
+    .terminal {
+      background: #1e293b; 
+      border-radius: 12px;
+      padding: 16px;
+      height: 250px;
+      overflow-y: auto;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      margin-top: 24px;
+      display: none;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .terminal.active { display: block; }
+    .log-line { word-break: break-all; }
+    
+    /* Result Card */
+    .result-card {
+      margin-top: 24px;
+      background: #ecfdf5; 
+      border: 1px solid #a7f3d0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .result-icon { 
+      background: var(--success); color: white; width: 36px; height: 36px; 
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;
+      font-size: 18px;
+    }
+    .result-content { flex: 1; overflow: hidden; }
+    .result-title { font-weight: 700; font-family: var(--font-heading); font-size: 15px; margin-bottom: 2px; color: #064e3b; }
+    .result-link { color: var(--success); text-decoration: none; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .result-link:hover { text-decoration: underline; }
+
+    /* Status Pill */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 600; font-family: var(--font-heading);
+      padding: 6px 14px; border-radius: 99px; 
+      background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted);
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+    .status-badge.running .status-dot { background: var(--primary); animation: pulse 1.5s infinite; }
+    .status-badge.error .status-dot { background: var(--danger); }
+    .status-badge.done .status-dot { background: var(--success); }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    
+    /* Mobile Tweaks */
+    @media (max-width: 480px) {
+      .card { padding: 24px; }
+      .container { margin-top: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <img src="/assets/mediafetch-logo.svg" alt="MediaFetch" class="logo">
+    </header>
+
+    <div class="card">
+      <div class="form-group">
+        <label for="url">YouTube / Media URL</label>
+        <input id="url" type="text" placeholder="https://youtube.com/watch?v=..." autocomplete="off">
+      </div>
+
+      <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+          <label>Mode</label>
+          <div class="segmented-control">
+            <input type="radio" name="mode" id="mode-video" value="video" checked>
+            <label for="mode-video">Video</label>
+            
+            <input type="radio" name="mode" id="mode-audio" value="audio">
+            <label for="mode-audio">Audio</label>
+          </div>
+        </div>
+        <div>
+          <label for="filename">Filename (Optional)</label>
+          <input id="filename" type="text" placeholder="custom_name" autocomplete="off">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+        <div class="status-badge" id="status-badge">
+          <div class="status-dot"></div>
+          <span id="status-text">Ready</span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" id="clear">RESET</button>
+        <button class="btn-primary" id="go">FETCH MEDIA</button>
+      </div>
+
+      <div id="result-card" class="result-card">
+        <div class="result-icon">✓</div>
+        <div class="result-content">
+          <div class="result-title">Download Complete</div>
+          <a href="#" id="download-link" class="result-link" target="_blank">...</a>
+        </div>
+      </div>
+
+      <div class="terminal" id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const logEl = $("log");
+    const goBtn = $("go");
+    const statusBadge = $("status-badge");
+    const statusText = $("status-text");
+    const resultCard = $("result-card");
+    const dlLink = $("download-link");
+
+    function setStatus(state, text) {
+      statusBadge.className = `status-badge ${state}`;
+      statusText.textContent = text;
+    }
+
+    function log(msg) {
+      logEl.classList.add("active");
+      const div = document.createElement("div");
+      div.className = "log-line";
+      div.textContent = msg;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    $("clear").addEventListener("click", () => {
+      logEl.innerHTML = "";
+      logEl.classList.remove("active");
+      $("url").value = "";
+      $("filename").value = "";
+      resultCard.style.display = "none";
+      setStatus("", "Ready");
+    });
+
+    goBtn.addEventListener("click", async () => {
+      const url = $("url").value.trim();
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const filename = $("filename").value.trim();
+
+      if (!url) {
+        $("url").focus();
+        return;
+      }
+
+      // UI Reset
+      goBtn.disabled = true;
+      resultCard.style.display = "none";
+      logEl.innerHTML = "";
+      setStatus("running", "Fetching...");
+      log(`> Initializing job for ${mode}...`);
+
+      try {
+        const resp = await fetch("/api/fetch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, mode, filename })
+        });
+
+        if (!resp.ok) throw new Error(await resp.text());
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop();
+
+          for (const part of parts) {
+            const lines = part.split("\n");
+            let event = "message";
+            let data = {};
+
+            for (const line of lines) {
+              if (line.startsWith("event:")) event = line.slice(6).trim();
+              if (line.startsWith("data:")) {
+                try { data = JSON.parse(line.slice(5).trim()); } 
+                catch { data = {}; }
+              }
+            }
+
+            if (event === "log" && data.line) log(data.line);
+            if (event === "start") log(`> Job ID: ${data.jobId}`);
+            if (event === "done") {
+              if (data.ok) {
+                setStatus("done", "Complete");
+                log("> Done.");
+                if (data.downloadUrl) {
+                  resultCard.style.display = "flex";
+                  dlLink.href = data.downloadUrl;
+                  dlLink.textContent = data.downloadUrl;
+                } else {
+                  log("> File saved, but public link could not be generated.");
+                }
+              } else {
+                setStatus("error", "Failed");
+                log(`> Error: Exit code ${data.code}`);
+                if (data.error) log(`> ${data.error}`);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        setStatus("error", "Error");
+        log(`> Request failed: ${e.message}`);
+      } finally {
+        goBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
