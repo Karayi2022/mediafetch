@@ -1,77 +1,136 @@
 import express from "express";
-import basicAuth from "express-basic-auth";
-import { spawn } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import crypto from "crypto";
+import { spawn } from "child_process";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Config
-app.use(express.json({ limit: "256kb" }));
-const PORT = Number(process.env.PORT || 3000);
+/**
+ * Env
+ */
+const PORT = Number(process.env.PORT || 3002);
 const OUTPUT_DIR = process.env.OUTPUT_DIR || "/data/downloads";
-const BASE_URL = process.env.PUBLIC_BASE_URL || ""; 
-const AUTH_USER = process.env.BASIC_AUTH_USER || "admin";
-const AUTH_PASS = process.env.BASIC_AUTH_PASS || "changeme";
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || "";
+const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || "";
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || "";
 
-// Ensure output directory exists
+/**
+ * Ensure output dir exists
+ */
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
-// 1. Basic Auth (Browser Prompt)
-app.use(
-  basicAuth({
-    users: { [AUTH_USER]: AUTH_PASS },
-    challenge: true,
-    realm: "MediaFetch",
-  })
-);
+/**
+ * Very small Basic Auth middleware.
+ * Applies to everything (UI + downloads + API).
+ */
+function basicAuth(req, res, next) {
+  // If not configured, allow access (useful for local dev)
+  if (!BASIC_AUTH_USER || !BASIC_AUTH_PASS) return next();
 
-// 2. Static Assets
-app.use("/assets", express.static(path.join(process.cwd(), "assets"))); 
-app.use("/downloads", express.static(OUTPUT_DIR, { fallthrough: false }));
-
-// 3. Helpers
-function safeUrl(input) {
-  try {
-    const u = new URL(input);
-    if (!["http:", "https:"].includes(u.protocol)) return null;
-    return u.toString();
-  } catch {
-    return null;
+  const hdr = req.headers.authorization || "";
+  if (!hdr.startsWith("Basic ")) {
+    res.setHeader("WWW-Authenticate", 'Basic realm="MediaFetch"');
+    return res.status(401).send("Auth required");
   }
+
+  const decoded = Buffer.from(hdr.slice(6), "base64").toString("utf8");
+  const [user, pass] = decoded.split(":");
+
+  if (user === BASIC_AUTH_USER && pass === BASIC_AUTH_PASS) return next();
+
+  res.setHeader("WWW-Authenticate", 'Basic realm="MediaFetch"');
+  return res.status(401).send("Invalid credentials");
 }
 
-function makeJobId() {
-  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+app.use(basicAuth);
+
+/**
+ * Serve UI (public/)
+ * - GET / loads public/index.html automatically
+ */
+app.use(express.static(path.join(__dirname, "public")));
+
+/**
+ * Serve downloaded files
+ * - GET /downloads/<file>
+ */
+app.use("/downloads", express.static(OUTPUT_DIR));
+
+/**
+ * Helpers
+ */
+function safeSlug(input) {
+  return String(input || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80) || "mediafetch";
 }
 
-// 4. API
-app.post("/api/fetch", async (req, res) => {
-  const { url, mode, filename } = req.body || {};
-  const cleanUrl = typeof url === "string" ? safeUrl(url.trim()) : null;
+function normalisePublicBaseUrl(req) {
+  // Prefer explicit PUBLIC_BASE_URL (best behind reverse proxies)
+  if (PUBLIC_BASE_URL) return PUBLIC_BASE_URL.replace(/\/+$/, "");
 
-  if (!cleanUrl) return res.status(400).json({ error: "Invalid URL." });
+  // Fallback: infer from request (works in some setups)
+  const proto =
+    (req.headers["x-forwarded-proto"] || "").toString().split(",")[0].trim() ||
+    "http";
+  const host =
+    (req.headers["x-forwarded-host"] || req.headers.host || "")
+      .toString()
+      .split(",")[0]
+      .trim();
 
-  const jobId = makeJobId();
-  
-  // Clean filename: alphanumeric + dashes/underscores only
-  const cleanBase =
-    typeof filename === "string" && filename.trim()
-      ? filename.trim().replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80)
-      : "";
+  if (!host) return "";
+  return `${proto}://${host}`.replace(/\/+$/, "");
+}
 
-  // Template: Use custom name if provided, else title + ID
-  const outTemplate = cleanBase
-    ? path.join(OUTPUT_DIR, `${cleanBase}.%(ext)s`)
-    : path.join(OUTPUT_DIR, "%(title).200B [%(id)s].%(ext)s");
+function cleanInputUrl(raw) {
+  const u = String(raw || "").trim();
+  if (!u) return "";
+  // Very light validation: must look like http(s) URL
+  if (!/^https?:\/\//i.test(u)) return "";
+  return u;
+}
 
+/**
+ * SSE endpoint to run yt-dlp
+ * Call like:
+ *   GET /api/run?url=<encoded>&mode=video|audio&name=optional
+ *
+ * Streams:
+ *  event: start
+ *  event: log
+ *  event: done  { ok, downloadUrl }
+ */
+app.get("/api/run", (req, res) => {
+  const rawUrl = req.query.url;
+  const mode = (req.query.mode || "video").toString();
+  const name = (req.query.name || "").toString();
+
+  const cleanUrl = cleanInputUrl(rawUrl);
+  if (!cleanUrl) return res.status(400).json({ ok: false, error: "Invalid url" });
+
+  // Job id + filename template
+  const jobId = crypto.randomBytes(8).toString("hex");
+  const baseName = safeSlug(name) || "mediafetch";
+  const outTemplate = path.join(OUTPUT_DIR, `${baseName}-${jobId}.%(ext)s`);
+
+  // yt-dlp args
   const argsBase = [
     "--no-warnings",
     "--newline",
     "--restrict-filenames",
     "--no-playlist",
     "--no-part",
-    "-o", outTemplate
+    "-o",
+    outTemplate,
   ];
 
   let args = [];
@@ -87,6 +146,7 @@ app.post("/api/fetch", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
 
   const send = (event, data) => {
     res.write(`event: ${event}\n`);
@@ -116,11 +176,20 @@ app.post("/api/fetch", async (req, res) => {
   proc.stderr.on("data", onLine);
 
   proc.on("close", (code) => {
+    const baseUrl = normalisePublicBaseUrl(req);
     let link = null;
-    if (code === 0 && lastFile && lastFile.startsWith(OUTPUT_DIR)) {
-      const rel = lastFile.slice(OUTPUT_DIR.length).replace(/^\/+/, "");
-      link = `${BASE_URL}/downloads/${rel}`;
+
+    // Only produce a link if the file is inside OUTPUT_DIR
+    if (code === 0 && lastFile) {
+      const normalisedOutput = path.resolve(OUTPUT_DIR) + path.sep;
+      const normalisedFile = path.resolve(lastFile);
+
+      if (normalisedFile.startsWith(normalisedOutput) && baseUrl) {
+        const rel = normalisedFile.slice(normalisedOutput.length).replace(/^\/+/, "");
+        link = `${baseUrl}/downloads/${rel}`;
+      }
     }
+
     send("done", { ok: code === 0, code, downloadUrl: link });
     res.end();
   });
@@ -130,5 +199,10 @@ app.post("/api/fetch", async (req, res) => {
     res.end();
   });
 });
+
+/**
+ * Optional: basic health endpoint (nice for Dokploy checks)
+ */
+app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => console.log(`MediaFetch listening on :${PORT}`));
